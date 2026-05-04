@@ -1,24 +1,51 @@
 import { Component } from 'react';
+import { fetchCharacters, Character } from './api/rickmorty';
 import Header from './components/Header/Header';
+import Search from './components/Search/Search';
+import CardList from './components/CardList/CardList';
+import Spinner from './components/Spinner/Spinner';
+import ErrorMessage from './components/ErrorMessage/ErrorMessage';
 import './App.css';
 
 interface AppState {
-  searchTerm: string;
+  characters: Character[];
+  isLoading: boolean;
+  error: string | null;
 }
 
 class App extends Component<object, AppState> {
   state: AppState = {
-    searchTerm: '',
+    characters: [],
+    isLoading: false,
+    error: null,
+  };
+
+  handleSearch = async (term: string) => {
+    this.setState({ isLoading: true, error: null });
+
+    try {
+      const characters = await fetchCharacters(term);
+      this.setState({ characters, isLoading: false });
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : 'Something went wrong';
+      this.setState({ error: message, isLoading: false, characters: [] });
+    }
   };
 
   render() {
+    const { characters, isLoading, error } = this.state;
+
     return (
       <div className="app">
         <header className="app__header">
           <Header />
+          <Search onSearch={this.handleSearch} />
         </header>
         <main className="app__main">
-          <p>Results section — coming soon</p>
+          {isLoading && <Spinner />}
+          {!isLoading && error && <ErrorMessage message={error} />}
+          {!isLoading && !error && <CardList characters={characters} />}
         </main>
       </div>
     );

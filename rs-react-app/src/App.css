@@ -4,7 +4,7 @@
   min-height: 100vh;
 }
 
-/* Top section — search controls */
+/* Top section — title + search controls */
 .app__header {
   background: var(--color-primary-dark);
   padding: var(--space-lg) var(--space-xl);
@@ -12,6 +12,10 @@
   top: 0;
   z-index: 10;
   box-shadow: var(--shadow-md);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-md);
 }
 
 /* Bottom section — results */

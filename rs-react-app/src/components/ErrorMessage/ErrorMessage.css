@@ -1,0 +1,20 @@
+.error-message {
+  padding: var(--space-lg);
+  background: var(--color-error-bg);
+  border: 1px solid var(--color-error-border);
+  border-radius: var(--border-radius);
+  text-align: center;
+}
+
+.error-message__title {
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  color: var(--color-error);
+  margin-bottom: var(--space-xs);
+}
+
+.error-message__text {
+  font-size: var(--font-size-base);
+  color: var(--color-error);
+  opacity: 0.8;
+}
