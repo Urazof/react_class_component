@@ -5,6 +5,8 @@ import Search from './components/Search/Search';
 import CardList from './components/CardList/CardList';
 import Spinner from './components/Spinner/Spinner';
 import ErrorMessage from './components/ErrorMessage/ErrorMessage';
+import ErrorBoundary from './components/ErrorBoundary/ErrorBoundary';
+import ThrowErrorButton from './components/ErrorBoundary/ThrowErrorButton';
 import './App.css';
 
 interface AppState {
@@ -43,9 +45,16 @@ class App extends Component<object, AppState> {
           <Search onSearch={this.handleSearch} />
         </header>
         <main className="app__main">
-          {isLoading && <Spinner />}
-          {!isLoading && error && <ErrorMessage message={error} />}
-          {!isLoading && !error && <CardList characters={characters} />}
+          <ErrorBoundary>
+            <div className="app__results">
+              {isLoading && <Spinner />}
+              {!isLoading && error && <ErrorMessage message={error} />}
+              {!isLoading && !error && <CardList characters={characters} />}
+            </div>
+            <div className="app__error-trigger">
+              <ThrowErrorButton />
+            </div>
+          </ErrorBoundary>
         </main>
       </div>
     );
