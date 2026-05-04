@@ -1,4 +1,5 @@
 import { Component } from 'react';
+import Header from './components/Header/Header';
 import './App.css';
 
 interface AppState {
@@ -14,7 +15,7 @@ class App extends Component<object, AppState> {
     return (
       <div className="app">
         <header className="app__header">
-          <p>Search section — coming soon</p>
+          <Header />
         </header>
         <main className="app__main">
           <p>Results section — coming soon</p>
