@@ -1,5 +1,6 @@
 import { Component } from 'react';
-import { fetchCharacters, Character } from './api/rickmorty';
+import { fetchCharacters } from './api/rickmorty';
+import type { Character } from './api/rickmorty';
 import Header from './components/Header/Header';
 import Search from './components/Search/Search';
 import CardList from './components/CardList/CardList';

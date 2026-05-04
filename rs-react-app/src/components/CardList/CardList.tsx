@@ -1,4 +1,4 @@
-import { Character } from '../../api/rickmorty';
+import type { Character } from '../../api/rickmorty';
 import Card from '../Card/Card';
 import './CardList.css';
 
