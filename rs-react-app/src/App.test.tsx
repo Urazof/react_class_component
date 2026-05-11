@@ -186,18 +186,24 @@ describe('App', () => {
   });
 
   describe('layout', () => {
-    it('renders the app header title', () => {
+    // Each test awaits the initial async load to drain pending state updates
+    // and prevent act() warnings from Search.componentDidMount → handleSearch
+
+    it('renders the app header title', async () => {
       render(<App />);
+      await screen.findByText('No characters found. Try a different search term.');
       expect(screen.getByText('Rick & Morty Explorer')).toBeInTheDocument();
     });
 
-    it('renders the search input', () => {
+    it('renders the search input', async () => {
       render(<App />);
+      await screen.findByText('No characters found. Try a different search term.');
       expect(screen.getByRole('textbox', { name: /search/i })).toBeInTheDocument();
     });
 
-    it('renders ThrowErrorButton', () => {
+    it('renders ThrowErrorButton', async () => {
       render(<App />);
+      await screen.findByText('No characters found. Try a different search term.');
       expect(
         screen.getByRole('button', { name: /throw error/i })
       ).toBeInTheDocument();
