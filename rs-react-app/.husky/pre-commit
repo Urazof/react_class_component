@@ -1,0 +1,2 @@
+#!/bin/sh
+cd rs-react-app && npm run lint

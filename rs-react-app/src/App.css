@@ -1,0 +1,51 @@
+.app {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* Top section — title + search controls */
+.app__header {
+  background: var(--color-primary-dark);
+  padding: var(--space-lg) var(--space-xl);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  box-shadow: var(--shadow-md);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+/* Bottom section — results + error trigger */
+.app__main {
+  flex: 1;
+  padding: var(--space-xl);
+  max-width: var(--max-width);
+  width: 100%;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.app__results {
+  flex: 1;
+}
+
+/* Throw Error button — прижат к правому нижнему углу */
+.app__error-trigger {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: var(--space-lg);
+}
+
+@media (max-width: 768px) {
+  .app__header {
+    padding: var(--space-md);
+  }
+
+  .app__main {
+    padding: var(--space-md);
+  }
+}
