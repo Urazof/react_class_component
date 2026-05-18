@@ -32,7 +32,7 @@ describe('Search', () => {
     });
   });
 
-  describe('componentDidMount — initial search', () => {
+  describe('initial load — initial search', () => {
     it('calls onSearch with empty string on mount when no saved term', () => {
       const onSearch = vi.fn();
       render(<Search onSearch={onSearch} />);
