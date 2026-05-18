@@ -1,7 +1,37 @@
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
 .header__title {
   font-size: var(--font-size-xl);
   font-weight: 700;
   color: #fff;
-  text-align: center;
   letter-spacing: 0.5px;
+}
+
+.header__nav {
+  display: flex;
+  gap: var(--space-4);
+}
+
+.header__nav-link {
+  color: rgba(255, 255, 255, 0.8);
+  text-decoration: none;
+  font-weight: 500;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  transition: color 0.2s, background-color 0.2s;
+}
+
+.header__nav-link:hover {
+  color: #fff;
+}
+
+.header__nav-link.active {
+  color: #fff;
+  background-color: rgba(255, 255, 255, 0.15);
 }

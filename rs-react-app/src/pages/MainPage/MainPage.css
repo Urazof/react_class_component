@@ -1,0 +1,15 @@
+.main-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.main-page__results {
+  min-height: 200px;
+}
+
+.main-page__error-trigger {
+  display: flex;
+  justify-content: center;
+  padding: var(--space-4) 0;
+}
