@@ -12,7 +12,7 @@ export interface Character {
   image: string;
 }
 
-interface ApiInfo {
+export interface ApiInfo {
   count: number;
   pages: number;
   next: string | null;
@@ -22,6 +22,11 @@ interface ApiInfo {
 interface ApiResponse {
   info: ApiInfo;
   results: Character[];
+}
+
+export interface CharactersResult {
+  results: Character[];
+  info: ApiInfo;
 }
 
 export class ApiError extends Error {
@@ -34,19 +39,25 @@ export class ApiError extends Error {
   }
 }
 
-export async function fetchCharacters(searchTerm: string): Promise<Character[]> {
+const EMPTY_INFO: ApiInfo = { count: 0, pages: 0, next: null, prev: null };
+
+export async function fetchCharacters(
+  searchTerm: string,
+  page: number = 1
+): Promise<CharactersResult> {
   const url = new URL(`${BASE_URL}/character`);
   const trimmed = searchTerm.trim();
 
   if (trimmed) {
     url.searchParams.set('name', trimmed);
   }
+  url.searchParams.set('page', String(page));
 
   const response = await fetch(url.toString());
 
   // API returns 404 when no characters match — treat as empty list, not an error
   if (response.status === 404) {
-    return [];
+    return { results: [], info: EMPTY_INFO };
   }
 
   if (!response.ok) {
@@ -57,5 +68,18 @@ export async function fetchCharacters(searchTerm: string): Promise<Character[]> 
   }
 
   const data = (await response.json()) as ApiResponse;
-  return data.results;
+  return { results: data.results, info: data.info };
+}
+
+export async function fetchCharacterById(id: number): Promise<Character> {
+  const response = await fetch(`${BASE_URL}/character/${id}`);
+
+  if (!response.ok) {
+    throw new ApiError(
+      `Server responded with ${response.status}`,
+      response.status
+    );
+  }
+
+  return (await response.json()) as Character;
 }

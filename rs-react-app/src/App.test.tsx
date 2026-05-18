@@ -2,7 +2,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { fetchCharacters } from './api/rickmorty';
-import type { Character } from './api/rickmorty';
+import type { Character, ApiInfo } from './api/rickmorty';
 import App from './App';
 
 vi.mock('./api/rickmorty', () => ({
@@ -10,6 +10,9 @@ vi.mock('./api/rickmorty', () => ({
 }));
 
 const mockFetch = vi.mocked(fetchCharacters);
+
+const emptyInfo: ApiInfo = { count: 0, pages: 0, next: null, prev: null };
+const singlePageInfo: ApiInfo = { count: 1, pages: 1, next: null, prev: null };
 
 const mockCharacter: Character = {
   id: 1,
@@ -40,7 +43,7 @@ describe('App', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     localStorage.clear();
-    mockFetch.mockResolvedValue([]);
+    mockFetch.mockResolvedValue({ results: [], info: emptyInfo });
   });
 
   describe('initial load', () => {
@@ -63,27 +66,27 @@ describe('App', () => {
     });
 
     it('renders characters after successful API response', async () => {
-      mockFetch.mockResolvedValueOnce([mockCharacter]);
+      mockFetch.mockResolvedValueOnce({ results: [mockCharacter], info: singlePageInfo });
       renderApp();
       await screen.findByText('Rick Sanchez');
     });
 
     it('shows empty state when API returns no characters', async () => {
-      mockFetch.mockResolvedValueOnce([]);
+      mockFetch.mockResolvedValueOnce({ results: [], info: emptyInfo });
       renderApp();
       await screen.findByText('No characters found. Try a different search term.');
     });
 
     it('uses saved search term from localStorage for initial load', async () => {
       localStorage.setItem('rm_search_term', 'Rick');
-      mockFetch.mockResolvedValueOnce([mockCharacter]);
+      mockFetch.mockResolvedValueOnce({ results: [mockCharacter], info: singlePageInfo });
       renderApp();
       await screen.findByText('Rick Sanchez');
       expect(mockFetch).toHaveBeenCalledWith('Rick');
     });
 
     it('renders multiple characters', async () => {
-      mockFetch.mockResolvedValueOnce([mockCharacter, mortyCharacter]);
+      mockFetch.mockResolvedValueOnce({ results: [mockCharacter, mortyCharacter], info: singlePageInfo });
       renderApp();
       await screen.findByText('Rick Sanchez');
       expect(screen.getByText('Morty Smith')).toBeInTheDocument();
@@ -132,7 +135,7 @@ describe('App', () => {
       renderApp();
       await screen.findByText('No characters found. Try a different search term.');
 
-      mockFetch.mockResolvedValueOnce([mockCharacter]);
+      mockFetch.mockResolvedValueOnce({ results: [mockCharacter], info: singlePageInfo });
       await user.type(screen.getByRole('textbox'), 'Rick');
       await user.click(screen.getByRole('button', { name: /search/i }));
 
@@ -144,7 +147,7 @@ describe('App', () => {
       renderApp();
       await screen.findByText('No characters found. Try a different search term.');
 
-      mockFetch.mockResolvedValueOnce([mockCharacter]);
+      mockFetch.mockResolvedValueOnce({ results: [mockCharacter], info: singlePageInfo });
       await user.type(screen.getByRole('textbox'), 'Rick');
       await user.click(screen.getByRole('button', { name: /search/i }));
 
@@ -169,7 +172,7 @@ describe('App', () => {
       renderApp();
       await screen.findByRole('alert');
 
-      mockFetch.mockResolvedValueOnce([mockCharacter]);
+      mockFetch.mockResolvedValueOnce({ results: [mockCharacter], info: singlePageInfo });
       await user.type(screen.getByRole('textbox'), 'Rick');
       await user.click(screen.getByRole('button', { name: /search/i }));
 
@@ -182,7 +185,7 @@ describe('App', () => {
       renderApp();
       await screen.findByText('No characters found. Try a different search term.');
 
-      mockFetch.mockResolvedValueOnce([mortyCharacter]);
+      mockFetch.mockResolvedValueOnce({ results: [mortyCharacter], info: singlePageInfo });
       await user.type(screen.getByRole('textbox'), 'Morty');
       await user.keyboard('{Enter}');
 

@@ -25,8 +25,8 @@ class MainPage extends Component<object, MainPageState> {
     this.setState({ isLoading: true, error: null });
 
     try {
-      const characters = await fetchCharacters(term);
-      this.setState({ characters, isLoading: false });
+      const { results } = await fetchCharacters(term);
+      this.setState({ characters: results, isLoading: false });
     } catch (err) {
       const message =
         err instanceof Error ? err.message : 'Something went wrong';
