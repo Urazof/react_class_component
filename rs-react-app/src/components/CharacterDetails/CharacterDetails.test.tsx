@@ -119,6 +119,13 @@ describe('CharacterDetails', () => {
       await screen.findByRole('alert');
       expect(screen.queryByRole('status')).not.toBeInTheDocument();
     });
+
+    it('shows fallback message when rejection is not an Error instance', async () => {
+      mockFetch.mockRejectedValueOnce('string rejection');
+      renderDetails();
+      const alert = await screen.findByRole('alert');
+      expect(alert).toHaveTextContent('Failed to load character');
+    });
   });
 
   describe('close button', () => {
