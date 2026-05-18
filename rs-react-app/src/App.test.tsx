@@ -49,7 +49,7 @@ describe('App', () => {
   describe('initial load', () => {
     it('calls fetchCharacters on mount', async () => {
       renderApp();
-      await waitFor(() => expect(mockFetch).toHaveBeenCalledWith(''));
+      await waitFor(() => expect(mockFetch).toHaveBeenCalledWith('', 1));
     });
 
     it('shows spinner while API request is pending', () => {
@@ -82,7 +82,7 @@ describe('App', () => {
       mockFetch.mockResolvedValueOnce({ results: [mockCharacter], info: singlePageInfo });
       renderApp();
       await screen.findByText('Rick Sanchez');
-      expect(mockFetch).toHaveBeenCalledWith('Rick');
+      expect(mockFetch).toHaveBeenCalledWith('Rick', 1);
     });
 
     it('renders multiple characters', async () => {
@@ -139,7 +139,7 @@ describe('App', () => {
       await user.type(screen.getByRole('textbox'), 'Rick');
       await user.click(screen.getByRole('button', { name: /search/i }));
 
-      expect(mockFetch).toHaveBeenLastCalledWith('Rick');
+      expect(mockFetch).toHaveBeenLastCalledWith('Rick', 1);
     });
 
     it('renders new results after search', async () => {
@@ -190,7 +190,7 @@ describe('App', () => {
       await user.keyboard('{Enter}');
 
       await screen.findByText('Morty Smith');
-      expect(mockFetch).toHaveBeenLastCalledWith('Morty');
+      expect(mockFetch).toHaveBeenLastCalledWith('Morty', 1);
     });
   });
 
