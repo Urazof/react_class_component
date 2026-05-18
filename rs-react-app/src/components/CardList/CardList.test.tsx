@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import CardList from './CardList';
 import type { Character } from '../../api/rickmorty';
 
@@ -60,6 +61,29 @@ describe('CardList', () => {
       expect(
         screen.queryByText('No characters found. Try a different search term.')
       ).not.toBeInTheDocument();
+    });
+  });
+
+  describe('onCardClick', () => {
+    it('calls onCardClick with character id when a card is clicked', async () => {
+      const user = userEvent.setup();
+      const onCardClick = vi.fn();
+      render(
+        <CardList
+          characters={[makeCharacter(1, 'Rick Sanchez')]}
+          onCardClick={onCardClick}
+        />
+      );
+
+      await user.click(screen.getByRole('article'));
+
+      expect(onCardClick).toHaveBeenCalledWith(1);
+    });
+
+    it('does not throw when onCardClick is not provided', async () => {
+      const user = userEvent.setup();
+      render(<CardList characters={[makeCharacter(1, 'Rick')]} />);
+      await expect(user.click(screen.getByRole('article'))).resolves.not.toThrow();
     });
   });
 });

@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import Card from './Card';
 import type { Character } from '../../api/rickmorty';
 
@@ -60,6 +61,35 @@ describe('Card', () => {
     it('renders description for Dead character', () => {
       render(<Card character={{ ...mockCharacter, status: 'Dead' }} />);
       expect(screen.getByText('Human · Dead · Male')).toBeInTheDocument();
+    });
+  });
+
+  describe('click interaction', () => {
+    it('calls onClick with character id when clicked', async () => {
+      const user = userEvent.setup();
+      const onClick = vi.fn();
+      render(<Card character={mockCharacter} onClick={onClick} />);
+
+      await user.click(screen.getByRole('article'));
+
+      expect(onClick).toHaveBeenCalledWith(1);
+      expect(onClick).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not throw when onClick is not provided', async () => {
+      const user = userEvent.setup();
+      render(<Card character={mockCharacter} />);
+      await expect(user.click(screen.getByRole('article'))).resolves.not.toThrow();
+    });
+
+    it('adds card--clickable class when onClick is provided', () => {
+      render(<Card character={mockCharacter} onClick={vi.fn()} />);
+      expect(screen.getByRole('article')).toHaveClass('card--clickable');
+    });
+
+    it('does not add card--clickable class when onClick is not provided', () => {
+      render(<Card character={mockCharacter} />);
+      expect(screen.getByRole('article')).not.toHaveClass('card--clickable');
     });
   });
 });

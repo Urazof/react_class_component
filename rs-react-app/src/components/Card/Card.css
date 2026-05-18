@@ -9,7 +9,11 @@
     transform 0.2s;
 }
 
-.card:hover {
+.card--clickable {
+  cursor: pointer;
+}
+
+.card--clickable:hover {
   box-shadow: var(--shadow-md);
   transform: translateY(-2px);
 }
