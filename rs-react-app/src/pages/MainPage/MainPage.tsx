@@ -1,4 +1,4 @@
-import { Component } from 'react';
+import { useState, useCallback } from 'react';
 import { fetchCharacters } from '../../api/rickmorty';
 import type { Character } from '../../api/rickmorty';
 import Search from '../../components/Search/Search';
@@ -8,49 +8,41 @@ import ErrorMessage from '../../components/ErrorMessage/ErrorMessage';
 import ThrowErrorButton from '../../components/ErrorBoundary/ThrowErrorButton';
 import './MainPage.css';
 
-interface MainPageState {
-  characters: Character[];
-  isLoading: boolean;
-  error: string | null;
-}
+function MainPage() {
+  const [characters, setCharacters] = useState<Character[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-class MainPage extends Component<object, MainPageState> {
-  state: MainPageState = {
-    characters: [],
-    isLoading: false,
-    error: null,
-  };
-
-  handleSearch = async (term: string) => {
-    this.setState({ isLoading: true, error: null });
+  // useCallback: стабильная ссылка — не пересоздаётся при каждом рендере.
+  // Deps [] — функция зависит только от stable setters и импортированного fetchCharacters.
+  const handleSearch = useCallback(async (term: string) => {
+    setIsLoading(true);
+    setError(null);
 
     try {
       const { results } = await fetchCharacters(term);
-      this.setState({ characters: results, isLoading: false });
+      setCharacters(results);
     } catch (err) {
-      const message =
-        err instanceof Error ? err.message : 'Something went wrong';
-      this.setState({ error: message, isLoading: false, characters: [] });
+      setError(err instanceof Error ? err.message : 'Something went wrong');
+      setCharacters([]);
+    } finally {
+      setIsLoading(false);
     }
-  };
+  }, []);
 
-  render() {
-    const { characters, isLoading, error } = this.state;
-
-    return (
-      <div className="main-page">
-        <Search onSearch={this.handleSearch} />
-        <div className="main-page__results">
-          {isLoading && <Spinner />}
-          {!isLoading && error && <ErrorMessage message={error} />}
-          {!isLoading && !error && <CardList characters={characters} />}
-        </div>
-        <div className="main-page__error-trigger">
-          <ThrowErrorButton />
-        </div>
+  return (
+    <div className="main-page">
+      <Search onSearch={handleSearch} />
+      <div className="main-page__results">
+        {isLoading && <Spinner />}
+        {!isLoading && error && <ErrorMessage message={error} />}
+        {!isLoading && !error && <CardList characters={characters} />}
       </div>
-    );
-  }
+      <div className="main-page__error-trigger">
+        <ThrowErrorButton />
+      </div>
+    </div>
+  );
 }
 
 export default MainPage;
