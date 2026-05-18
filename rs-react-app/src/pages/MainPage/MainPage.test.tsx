@@ -91,13 +91,12 @@ describe('MainPage', () => {
     it('navigates to character details route when a card is clicked', async () => {
       const user = userEvent.setup();
       mockFetch.mockResolvedValueOnce({ results: [mockCharacter], info: singlePageInfo });
-      renderMainPage('/?page=1');
+      renderMainPage('/');
 
-      await screen.findByText('Rick Sanchez');
+      // findByRole polls until article appears (characters loaded) or timeout
+      const card = await screen.findByRole('article');
+      await user.click(card);
 
-      await user.click(screen.getByRole('article'));
-
-      // Details route becomes active — outlet renders the dummy panel
       await screen.findByTestId('details-panel');
     });
 
@@ -106,12 +105,10 @@ describe('MainPage', () => {
       mockFetch.mockResolvedValueOnce({ results: [mockCharacter], info: multiPageInfo });
       renderMainPage('/?page=2');
 
-      await screen.findByText('Rick Sanchez');
-      await user.click(screen.getByRole('article'));
+      const card = await screen.findByRole('article');
+      await user.click(card);
 
       await screen.findByTestId('details-panel');
-      // URL should contain ?page=2 after card click — details panel is visible
-      expect(screen.getByTestId('details-panel')).toBeInTheDocument();
     });
   });
 
@@ -120,13 +117,14 @@ describe('MainPage', () => {
       const user = userEvent.setup();
       renderMainPage('/details/1?page=1');
 
-      // Details panel is open on initial render
       expect(screen.getByTestId('details-panel')).toBeInTheDocument();
 
-      // Click on the list area (empty state text is inside main-page__list)
-      await user.click(
-        screen.getByText('No characters found. Try a different search term.')
+      // Wait for fetch to complete — empty state text appears inside main-page__list
+      const emptyState = await screen.findByText(
+        'No characters found. Try a different search term.'
       );
+
+      await user.click(emptyState);
 
       await waitFor(() =>
         expect(screen.queryByTestId('details-panel')).not.toBeInTheDocument()
