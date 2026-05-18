@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 import { fetchCharacters } from '../../api/rickmorty';
@@ -12,7 +12,6 @@ vi.mock('../../api/rickmorty', () => ({
 const mockFetch = vi.mocked(fetchCharacters);
 
 const emptyInfo: ApiInfo = { count: 0, pages: 0, next: null, prev: null };
-const singlePageInfo: ApiInfo = { count: 1, pages: 1, next: null, prev: null };
 const multiPageInfo: ApiInfo = { count: 40, pages: 2, next: 'next', prev: null };
 
 const mockCharacter: Character = {
@@ -27,21 +26,21 @@ const mockCharacter: Character = {
   image: 'https://rickandmortyapi.com/api/character/avatar/1.jpeg',
 };
 
-// Nested routes matching App.tsx structure
-const routes = [
-  {
-    path: '/',
-    element: <MainPage />,
-    children: [
-      {
-        path: 'details/:id',
-        element: <div data-testid="details-panel">Details</div>,
-      },
-    ],
-  },
-];
-
 const renderMainPage = (initialPath = '/') => {
+  // Routes defined inside the function so each test gets a fresh object —
+  // React Router may cache internal state on the routes reference.
+  const routes = [
+    {
+      path: '/',
+      element: <MainPage />,
+      children: [
+        {
+          path: 'details/:id',
+          element: <div data-testid="details-panel">Details</div>,
+        },
+      ],
+    },
+  ];
   const router = createMemoryRouter(routes, { initialEntries: [initialPath] });
   return { ...render(<RouterProvider router={router} />), router };
 };
@@ -90,41 +89,42 @@ describe('MainPage', () => {
   describe('handleCardClick', () => {
     it('navigates to character details route when a card is clicked', async () => {
       const user = userEvent.setup();
-      mockFetch.mockResolvedValueOnce({ results: [mockCharacter], info: singlePageInfo });
+      // Reset mock entirely before this test to avoid state from handlePageChange tests
+      mockFetch.mockReset();
+      mockFetch.mockResolvedValueOnce({ results: [mockCharacter], info: multiPageInfo });
+      mockFetch.mockResolvedValue({ results: [], info: emptyInfo });
+
       renderMainPage('/');
 
-      // findByRole polls until article appears (characters loaded) or timeout
-      const card = await screen.findByRole('article');
-      await user.click(card);
+      await screen.findByRole('navigation', { name: 'Pagination' });
 
+      await user.click(await screen.findByRole('article'));
       await screen.findByTestId('details-panel');
     });
 
     it('preserves the current page query param when navigating to details', async () => {
       const user = userEvent.setup();
+      mockFetch.mockReset();
       mockFetch.mockResolvedValueOnce({ results: [mockCharacter], info: multiPageInfo });
+      mockFetch.mockResolvedValue({ results: [], info: emptyInfo });
+
       renderMainPage('/?page=2');
 
-      const card = await screen.findByRole('article');
-      await user.click(card);
+      await screen.findByRole('navigation', { name: 'Pagination' });
 
+      await user.click(await screen.findByRole('article'));
       await screen.findByTestId('details-panel');
     });
   });
 
   describe('handleContentClick', () => {
     it('closes the details panel when clicking the list area', async () => {
-      const user = userEvent.setup();
       renderMainPage('/details/1?page=1');
 
       expect(screen.getByTestId('details-panel')).toBeInTheDocument();
 
-      // Wait for fetch to complete — empty state text appears inside main-page__list
-      const emptyState = await screen.findByText(
-        'No characters found. Try a different search term.'
-      );
-
-      await user.click(emptyState);
+      // fireEvent bubbles through the DOM: main-page__list → main-page__body → handleContentClick
+      fireEvent.click(document.querySelector('.main-page__list')!);
 
       await waitFor(() =>
         expect(screen.queryByTestId('details-panel')).not.toBeInTheDocument()
