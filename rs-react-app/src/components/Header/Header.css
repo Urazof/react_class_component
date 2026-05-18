@@ -3,7 +3,7 @@
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
-  gap: var(--space-3);
+  gap: var(--space-sm);
 }
 
 .header__title {
@@ -15,15 +15,15 @@
 
 .header__nav {
   display: flex;
-  gap: var(--space-4);
+  gap: var(--space-md);
 }
 
 .header__nav-link {
   color: rgba(255, 255, 255, 0.8);
   text-decoration: none;
   font-weight: 500;
-  padding: var(--space-1) var(--space-2);
-  border-radius: var(--radius-sm);
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--border-radius-sm);
   transition: color 0.2s, background-color 0.2s;
 }
 

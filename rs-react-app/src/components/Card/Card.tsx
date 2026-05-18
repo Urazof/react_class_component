@@ -3,15 +3,26 @@ import './Card.css';
 
 interface CardProps {
   character: Character;
+  onClick?: (id: number) => void;
 }
 
-function Card({ character }: CardProps) {
+function Card({ character, onClick }: CardProps) {
   const description = [character.species, character.status, character.gender]
     .filter(Boolean)
     .join(' · ');
 
+  const handleClick = (e: React.MouseEvent) => {
+    // stopPropagation: не даём клику всплыть до обработчика закрытия деталей в MainPage
+    e.stopPropagation();
+    onClick?.(character.id);
+  };
+
   return (
-    <div className="card">
+    <article
+      className={`card${onClick ? ' card--clickable' : ''}`}
+      onClick={handleClick}
+      role="article"
+    >
       <img
         className="card__image"
         src={character.image}
@@ -24,7 +35,7 @@ function Card({ character }: CardProps) {
         <p className="card__description">{description}</p>
         <p className="card__origin">{character.origin.name}</p>
       </div>
-    </div>
+    </article>
   );
 }
 

@@ -1,10 +1,10 @@
 .about-page {
   max-width: 600px;
   margin: 0 auto;
-  padding: var(--space-6);
+  padding: var(--space-lg);
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);
+  gap: var(--space-md);
 }
 
 .about-page__title {
@@ -18,7 +18,7 @@
 }
 
 .about-page__description {
-  color: var(--color-text-secondary);
+  color: var(--color-text-muted);
   line-height: 1.6;
 }
 
@@ -27,7 +27,7 @@
   color: var(--color-primary);
   text-decoration: none;
   font-weight: 600;
-  padding: var(--space-2) 0;
+  padding: var(--space-sm) 0;
 }
 
 .about-page__link:hover {

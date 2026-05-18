@@ -4,9 +4,10 @@ import './CardList.css';
 
 interface CardListProps {
   characters: Character[];
+  onCardClick?: (id: number) => void;
 }
 
-function CardList({ characters }: CardListProps) {
+function CardList({ characters, onCardClick }: CardListProps) {
   if (characters.length === 0) {
     return (
       <div className="card-list__empty">
@@ -19,7 +20,7 @@ function CardList({ characters }: CardListProps) {
     <ul className="card-list">
       {characters.map((character) => (
         <li key={character.id} className="card-list__item">
-          <Card character={character} />
+          <Card character={character} onClick={onCardClick} />
         </li>
       ))}
     </ul>

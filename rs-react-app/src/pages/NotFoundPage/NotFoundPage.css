@@ -4,7 +4,7 @@
   align-items: center;
   justify-content: center;
   min-height: 50vh;
-  gap: var(--space-4);
+  gap: var(--space-md);
   text-align: center;
 }
 
@@ -17,17 +17,17 @@
 
 .not-found-page__message {
   font-size: var(--font-size-lg);
-  color: var(--color-text-secondary);
+  color: var(--color-text-muted);
   max-width: 400px;
 }
 
 .not-found-page__link {
   display: inline-block;
-  padding: var(--space-3) var(--space-6);
+  padding: var(--space-sm) var(--space-lg);
   background-color: var(--color-primary);
   color: var(--color-bg);
   text-decoration: none;
-  border-radius: var(--radius-md);
+  border-radius: var(--border-radius);
   font-weight: 600;
   transition: opacity 0.2s;
 }
