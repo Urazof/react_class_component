@@ -3,16 +3,22 @@ import type { RenderOptions } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import { selectionSlice } from './store/selectionSlice';
+import type { RootState } from './store/store';
+
+type RenderWithProvidersOptions = {
+  preloadedState?: Partial<RootState>;
+} & Omit<RenderOptions, 'wrapper'>;
 
 function renderWithProviders(
   ui: React.ReactElement,
-  options?: Omit<RenderOptions, 'wrapper'>
+  { preloadedState, ...renderOptions }: RenderWithProvidersOptions = {}
 ) {
   const store = configureStore({
     reducer: { selection: selectionSlice.reducer },
+    preloadedState,
   });
 
-  return render(<Provider store={store}>{ui}</Provider>, options);
+  return render(<Provider store={store}>{ui}</Provider>, renderOptions);
 }
 
 export { renderWithProviders };
