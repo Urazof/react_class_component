@@ -5,6 +5,7 @@ import MainPage from './pages/MainPage/MainPage';
 import AboutPage from './pages/AboutPage/AboutPage';
 import NotFoundPage from './pages/NotFoundPage/NotFoundPage';
 import CharacterDetails from './components/CharacterDetails/CharacterDetails';
+import Flyout from './components/Flyout/Flyout';
 import './App.css';
 
 function App() {
@@ -24,6 +25,7 @@ function App() {
           </Routes>
         </ErrorBoundary>
       </main>
+      <Flyout />
     </div>
   );
 }

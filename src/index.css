@@ -36,6 +36,18 @@
   --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
+[data-theme='dark'] {
+  --color-bg: #0d1117;
+  --color-surface: #161b22;
+  --color-text: #e6edf3;
+  --color-text-muted: #8b949e;
+  --color-border: #30363d;
+  --color-primary: #58a6ff;
+  --color-primary-dark: #1f6feb;
+  --color-error-bg: #3b1818;
+  --color-error-border: #6e2a2a;
+}
+
 *,
 *::before,
 *::after {
