@@ -1,8 +1,9 @@
-import { render, screen, waitFor, fireEvent } from '@testing-library/react';
+import { screen, waitFor, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 import { fetchCharacters } from '../../api/rickmorty';
 import type { Character, ApiInfo } from '../../api/rickmorty';
+import { renderWithProviders } from '../../test-utils';
 import MainPage from './MainPage';
 
 vi.mock('../../api/rickmorty', () => ({
@@ -42,7 +43,7 @@ const renderMainPage = (initialPath = '/') => {
     },
   ];
   const router = createMemoryRouter(routes, { initialEntries: [initialPath] });
-  return { ...render(<RouterProvider router={router} />), router };
+  return { ...renderWithProviders(<RouterProvider router={router} />), router };
 };
 
 describe('MainPage', () => {

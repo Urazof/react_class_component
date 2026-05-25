@@ -1,8 +1,9 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { fetchCharacters } from './api/rickmorty';
 import type { Character, ApiInfo } from './api/rickmorty';
+import { renderWithProviders } from './test-utils';
 import App from './App';
 
 vi.mock('./api/rickmorty', () => ({
@@ -33,7 +34,7 @@ const mortyCharacter: Character = {
 };
 
 const renderApp = () =>
-  render(
+  renderWithProviders(
     <MemoryRouter>
       <App />
     </MemoryRouter>

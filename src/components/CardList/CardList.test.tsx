@@ -1,5 +1,6 @@
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { renderWithProviders } from '../../test-utils';
 import CardList from './CardList';
 import type { Character } from '../../api/rickmorty';
 
@@ -18,21 +19,21 @@ const makeCharacter = (id: number, name: string): Character => ({
 describe('CardList', () => {
   describe('empty state', () => {
     it('shows "no characters found" message when array is empty', () => {
-      render(<CardList characters={[]} />);
+      renderWithProviders(<CardList characters={[]} />);
       expect(
         screen.getByText('No characters found. Try a different search term.')
       ).toBeInTheDocument();
     });
 
     it('does not render a list element when characters array is empty', () => {
-      render(<CardList characters={[]} />);
+      renderWithProviders(<CardList characters={[]} />);
       expect(screen.queryByRole('list')).not.toBeInTheDocument();
     });
   });
 
   describe('with characters', () => {
     it('renders a list when characters are provided', () => {
-      render(<CardList characters={[makeCharacter(1, 'Rick Sanchez')]} />);
+      renderWithProviders(<CardList characters={[makeCharacter(1, 'Rick Sanchez')]} />);
       expect(screen.getByRole('list')).toBeInTheDocument();
     });
 
@@ -42,7 +43,7 @@ describe('CardList', () => {
         makeCharacter(2, 'Morty Smith'),
         makeCharacter(3, 'Beth Smith'),
       ];
-      render(<CardList characters={characters} />);
+      renderWithProviders(<CardList characters={characters} />);
       expect(screen.getAllByRole('listitem')).toHaveLength(3);
     });
 
@@ -51,13 +52,13 @@ describe('CardList', () => {
         makeCharacter(1, 'Rick Sanchez'),
         makeCharacter(2, 'Morty Smith'),
       ];
-      render(<CardList characters={characters} />);
+      renderWithProviders(<CardList characters={characters} />);
       expect(screen.getByText('Rick Sanchez')).toBeInTheDocument();
       expect(screen.getByText('Morty Smith')).toBeInTheDocument();
     });
 
     it('does not show empty state message when characters are present', () => {
-      render(<CardList characters={[makeCharacter(1, 'Rick')]} />);
+      renderWithProviders(<CardList characters={[makeCharacter(1, 'Rick')]} />);
       expect(
         screen.queryByText('No characters found. Try a different search term.')
       ).not.toBeInTheDocument();
@@ -68,7 +69,7 @@ describe('CardList', () => {
     it('calls onCardClick with character id when a card is clicked', async () => {
       const user = userEvent.setup();
       const onCardClick = vi.fn();
-      render(
+      renderWithProviders(
         <CardList
           characters={[makeCharacter(1, 'Rick Sanchez')]}
           onCardClick={onCardClick}
@@ -82,7 +83,7 @@ describe('CardList', () => {
 
     it('does not throw when onCardClick is not provided', async () => {
       const user = userEvent.setup();
-      render(<CardList characters={[makeCharacter(1, 'Rick')]} />);
+      renderWithProviders(<CardList characters={[makeCharacter(1, 'Rick')]} />);
       await expect(user.click(screen.getByRole('article'))).resolves.not.toThrow();
     });
   });
