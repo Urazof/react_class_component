@@ -1,10 +1,12 @@
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
-import { clearSelected, selectSelectedCount } from '../../store/selectionSlice';
+import { clearSelected, selectSelectedCount, selectSelectedList } from '../../store/selectionSlice';
+import { downloadCsv } from '../../utils/downloadCsv';
 import './Flyout.css';
 
 function Flyout() {
   const dispatch = useAppDispatch();
   const count = useAppSelector(selectSelectedCount);
+  const selectedList = useAppSelector(selectSelectedList);
 
   if (count === 0) return null;
 
@@ -14,6 +16,12 @@ function Flyout() {
         {count} item{count !== 1 ? 's' : ''} selected
       </span>
       <div className="flyout__actions">
+        <button
+          className="flyout__download"
+          onClick={() => downloadCsv(selectedList)}
+        >
+          Download CSV
+        </button>
         <button
           className="flyout__clear"
           onClick={() => dispatch(clearSelected())}

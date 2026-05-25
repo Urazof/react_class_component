@@ -23,6 +23,7 @@
   gap: var(--space-md);
 }
 
+.flyout__download,
 .flyout__clear {
   padding: var(--space-xs) var(--space-lg);
   border: 2px solid #fff;
@@ -35,6 +36,7 @@
   transition: background 0.2s, color 0.2s;
 }
 
+.flyout__download:hover,
 .flyout__clear:hover {
   background: #fff;
   color: var(--color-primary-dark);

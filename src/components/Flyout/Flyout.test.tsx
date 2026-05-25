@@ -4,6 +4,13 @@ import { renderWithProviders } from '../../test-utils';
 import Flyout from './Flyout';
 import type { Character } from '../../api/rickmorty';
 
+vi.mock('../../utils/downloadCsv', () => ({
+  downloadCsv: vi.fn(),
+}));
+
+import { downloadCsv } from '../../utils/downloadCsv';
+const mockDownloadCsv = vi.mocked(downloadCsv);
+
 const rick: Character = {
   id: 1,
   name: 'Rick Sanchez',
@@ -46,6 +53,26 @@ describe('Flyout', () => {
         preloadedState: { selection: { selectedItems: { 1: rick, 2: morty } } },
       });
       expect(screen.getByText('2 items selected')).toBeInTheDocument();
+    });
+  });
+
+  describe('Download CSV', () => {
+    it('renders "Download CSV" button', () => {
+      renderWithProviders(<Flyout />, {
+        preloadedState: { selection: { selectedItems: { 1: rick } } },
+      });
+      expect(screen.getByRole('button', { name: /download csv/i })).toBeInTheDocument();
+    });
+
+    it('calls downloadCsv with the selected items list', async () => {
+      const user = userEvent.setup();
+      renderWithProviders(<Flyout />, {
+        preloadedState: { selection: { selectedItems: { 1: rick } } },
+      });
+
+      await user.click(screen.getByRole('button', { name: /download csv/i }));
+
+      expect(mockDownloadCsv).toHaveBeenCalledWith([rick]);
     });
   });
 
