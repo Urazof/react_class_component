@@ -29,12 +29,16 @@ const morty: Character = {
 describe('buildCsvContent', () => {
   it('includes correct headers as the first line', () => {
     const [header] = buildCsvContent([rick]).split('\n');
-    expect(header).toBe('id,name,status,species,gender,origin,location');
+    expect(header).toBe('id,name,status,species,gender,origin,location,image,url');
   });
 
   it('serializes a character to a correct CSV row', () => {
     const [, row] = buildCsvContent([rick]).split('\n');
-    expect(row).toBe('1,Rick Sanchez,Alive,Human,Male,Earth (C-137),Citadel of Ricks');
+    expect(row).toBe(
+      '1,Rick Sanchez,Alive,Human,Male,Earth (C-137),Citadel of Ricks,' +
+        'https://rickandmortyapi.com/api/character/avatar/1.jpeg,' +
+        'https://rickandmortyapi.com/api/character/1'
+    );
   });
 
   it('generates header + one row per character', () => {
@@ -43,7 +47,7 @@ describe('buildCsvContent', () => {
   });
 
   it('returns only headers for empty array', () => {
-    expect(buildCsvContent([])).toBe('id,name,status,species,gender,origin,location');
+    expect(buildCsvContent([])).toBe('id,name,status,species,gender,origin,location,image,url');
   });
 
   it('escapes values that contain commas', () => {
@@ -56,11 +60,20 @@ describe('buildCsvContent', () => {
     expect(csv).toContain('"Rick ""Genius"" Sanchez"');
   });
 
-  it('uses origin.name and location.name, not url', () => {
+  it('includes image URL in each row', () => {
+    const csv = buildCsvContent([rick]);
+    expect(csv).toContain('https://rickandmortyapi.com/api/character/avatar/1.jpeg');
+  });
+
+  it('includes API details URL in each row', () => {
+    const csv = buildCsvContent([rick]);
+    expect(csv).toContain('https://rickandmortyapi.com/api/character/1');
+  });
+
+  it('uses origin.name and location.name, not origin.url/location.url', () => {
     const csv = buildCsvContent([rick]);
     expect(csv).toContain('Earth (C-137)');
     expect(csv).toContain('Citadel of Ricks');
-    expect(csv).not.toContain('url');
   });
 });
 

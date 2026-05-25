@@ -1,6 +1,8 @@
 import type { Character } from '../api/rickmorty';
 
-const HEADERS = ['id', 'name', 'status', 'species', 'gender', 'origin', 'location'];
+const API_CHARACTER_URL = 'https://rickandmortyapi.com/api/character';
+
+const HEADERS = ['id', 'name', 'status', 'species', 'gender', 'origin', 'location', 'image', 'url'];
 
 function escapeCsvValue(value: string | number): string {
   const str = String(value);
@@ -12,7 +14,17 @@ function escapeCsvValue(value: string | number): string {
 
 export function buildCsvContent(characters: Character[]): string {
   const rows = characters.map((c) =>
-    [c.id, c.name, c.status, c.species, c.gender, c.origin.name, c.location.name]
+    [
+      c.id,
+      c.name,
+      c.status,
+      c.species,
+      c.gender,
+      c.origin.name,
+      c.location.name,
+      c.image,
+      `${API_CHARACTER_URL}/${c.id}`,
+    ]
       .map(escapeCsvValue)
       .join(',')
   );
