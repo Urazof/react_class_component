@@ -3,6 +3,7 @@ import type { RenderOptions } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import { selectionSlice } from './store/selectionSlice';
+import { ThemeProvider } from './context/ThemeContext';
 import type { RootState } from './store/store';
 
 type RenderWithProvidersOptions = {
@@ -18,7 +19,12 @@ function renderWithProviders(
     preloadedState,
   });
 
-  return render(<Provider store={store}>{ui}</Provider>, renderOptions);
+  return render(
+    <Provider store={store}>
+      <ThemeProvider>{ui}</ThemeProvider>
+    </Provider>,
+    renderOptions
+  );
 }
 
 export { renderWithProviders };
