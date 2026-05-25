@@ -1,4 +1,4 @@
-import { fetchCharacters, fetchCharacterById, ApiError } from './rickmorty';
+import { fetchCharacters, fetchCharacterById, createApiError } from './rickmorty';
 import type { Character, ApiInfo } from './rickmorty';
 
 const createMockResponse = (status: number, body?: unknown): Response =>
@@ -174,7 +174,7 @@ describe('fetchCharacters', () => {
     it('throws ApiError on 500', async () => {
       vi.mocked(fetch).mockResolvedValueOnce(createMockResponse(500));
 
-      await expect(fetchCharacters('')).rejects.toThrow(ApiError);
+      await expect(fetchCharacters('')).rejects.toMatchObject({ name: 'ApiError' });
     });
 
     it('throws ApiError with correct statusCode on 500', async () => {
@@ -230,7 +230,7 @@ describe('fetchCharacterById', () => {
   it('throws ApiError on 404 (character not found)', async () => {
     vi.mocked(fetch).mockResolvedValueOnce(createMockResponse(404));
 
-    await expect(fetchCharacterById(9999)).rejects.toThrow(ApiError);
+    await expect(fetchCharacterById(9999)).rejects.toMatchObject({ name: 'ApiError' });
   });
 
   it('throws ApiError with statusCode 404', async () => {
@@ -242,7 +242,7 @@ describe('fetchCharacterById', () => {
   it('throws ApiError on 500', async () => {
     vi.mocked(fetch).mockResolvedValueOnce(createMockResponse(500));
 
-    await expect(fetchCharacterById(1)).rejects.toThrow(ApiError);
+    await expect(fetchCharacterById(1)).rejects.toMatchObject({ name: 'ApiError' });
   });
 
   it('throws ApiError with correct statusCode on 500', async () => {
@@ -252,24 +252,24 @@ describe('fetchCharacterById', () => {
   });
 });
 
-describe('ApiError', () => {
-  it('is an instance of Error', () => {
-    const err = new ApiError('test', 500);
+describe('createApiError', () => {
+  it('returns an instance of Error', () => {
+    const err = createApiError('test', 500);
     expect(err).toBeInstanceOf(Error);
   });
 
   it('has name "ApiError"', () => {
-    const err = new ApiError('test', 500);
+    const err = createApiError('test', 500);
     expect(err.name).toBe('ApiError');
   });
 
   it('stores statusCode', () => {
-    const err = new ApiError('test', 404);
+    const err = createApiError('test', 404);
     expect(err.statusCode).toBe(404);
   });
 
   it('stores message', () => {
-    const err = new ApiError('Something went wrong', 500);
+    const err = createApiError('Something went wrong', 500);
     expect(err.message).toBe('Something went wrong');
   });
 });

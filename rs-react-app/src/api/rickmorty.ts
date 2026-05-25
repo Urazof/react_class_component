@@ -29,14 +29,12 @@ export interface CharactersResult {
   info: ApiInfo;
 }
 
-export class ApiError extends Error {
-  constructor(
-    message: string,
-    public readonly statusCode: number
-  ) {
-    super(message);
-    this.name = 'ApiError';
-  }
+export interface ApiError extends Error {
+  readonly statusCode: number;
+}
+
+export function createApiError(message: string, statusCode: number): ApiError {
+  return Object.assign(new Error(message), { name: 'ApiError', statusCode });
 }
 
 const EMPTY_INFO: ApiInfo = { count: 0, pages: 0, next: null, prev: null };
@@ -61,7 +59,7 @@ export async function fetchCharacters(
   }
 
   if (!response.ok) {
-    throw new ApiError(
+    throw createApiError(
       `Server responded with ${response.status}`,
       response.status
     );
@@ -75,7 +73,7 @@ export async function fetchCharacterById(id: number): Promise<Character> {
   const response = await fetch(`${BASE_URL}/character/${id}`);
 
   if (!response.ok) {
-    throw new ApiError(
+    throw createApiError(
       `Server responded with ${response.status}`,
       response.status
     );

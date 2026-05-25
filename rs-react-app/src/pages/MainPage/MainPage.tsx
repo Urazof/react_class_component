@@ -80,7 +80,7 @@ function MainPage() {
     <div className="main-page">
       <Search onSearch={handleSearch} />
       <div className="main-page__body" onClick={handleContentClick}>
-        <div className="main-page__list">
+        <div className="main-page__list" data-testid="main-page-list">
           {isLoading && <Spinner />}
           {!isLoading && error && <ErrorMessage message={error} />}
           {!isLoading && !error && (

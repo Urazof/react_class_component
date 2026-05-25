@@ -123,8 +123,8 @@ describe('MainPage', () => {
 
       expect(screen.getByTestId('details-panel')).toBeInTheDocument();
 
-      // fireEvent bubbles through the DOM: main-page__list → main-page__body → handleContentClick
-      fireEvent.click(document.querySelector('.main-page__list')!);
+      // Click the list area — event bubbles up to handleContentClick
+      fireEvent.click(screen.getByTestId('main-page-list'));
 
       await waitFor(() =>
         expect(screen.queryByTestId('details-panel')).not.toBeInTheDocument()
