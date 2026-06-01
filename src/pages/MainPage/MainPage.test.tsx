@@ -6,8 +6,10 @@ import type { Character, ApiInfo } from '../../api/rickmorty';
 import { renderWithProviders } from '../../test-utils';
 import MainPage from './MainPage';
 
+// Mock the underlying API functions used by RTK Query's queryFn
 vi.mock('../../api/rickmorty', () => ({
   fetchCharacters: vi.fn(),
+  fetchCharacterById: vi.fn(),
 }));
 
 const mockFetch = vi.mocked(fetchCharacters);
@@ -28,7 +30,7 @@ const mockCharacter: Character = {
 };
 
 const renderMainPage = (initialPath = '/') => {
-  // Routes defined inside the function so each test gets a fresh object —
+  // Routes defined inside the function so each test gets a fresh router —
   // React Router may cache internal state on the routes reference.
   const routes = [
     {
@@ -90,7 +92,6 @@ describe('MainPage', () => {
   describe('handleCardClick', () => {
     it('navigates to character details route when a card is clicked', async () => {
       const user = userEvent.setup();
-      // Reset mock entirely before this test to avoid state from handlePageChange tests
       mockFetch.mockReset();
       mockFetch.mockResolvedValueOnce({ results: [mockCharacter], info: multiPageInfo });
       mockFetch.mockResolvedValue({ results: [], info: emptyInfo });
@@ -136,7 +137,6 @@ describe('MainPage', () => {
       renderMainPage('/?page=1');
       await screen.findByText('No characters found. Try a different search term.');
 
-      // Details panel is closed — handleContentClick guard fires but does nothing
       expect(screen.queryByTestId('details-panel')).not.toBeInTheDocument();
     });
   });
@@ -148,11 +148,33 @@ describe('MainPage', () => {
 
       expect(screen.getByTestId('details-panel')).toBeInTheDocument();
 
-      // Click inside the details panel — stopPropagation prevents handleContentClick
       await user.click(screen.getByTestId('details-panel'));
 
-      // Should still be visible
       expect(screen.getByTestId('details-panel')).toBeInTheDocument();
+    });
+  });
+
+  describe('Refresh button', () => {
+    it('renders a refresh button', async () => {
+      renderMainPage();
+      expect(screen.getByRole('button', { name: /refresh data/i })).toBeInTheDocument();
+    });
+
+    it('re-fetches data when refresh button is clicked', async () => {
+      const user = userEvent.setup();
+      mockFetch.mockResolvedValueOnce({ results: [mockCharacter], info: emptyInfo });
+      renderMainPage();
+
+      await screen.findByText('Rick Sanchez');
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+
+      // Set up new data for the refetch after cache invalidation
+      mockFetch.mockResolvedValueOnce({ results: [], info: emptyInfo });
+      await user.click(screen.getByRole('button', { name: /refresh data/i }));
+
+      await waitFor(() =>
+        expect(mockFetch).toHaveBeenCalledTimes(2)
+      );
     });
   });
 });

@@ -1,10 +1,12 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 import { fetchCharacterById } from '../../api/rickmorty';
 import type { Character } from '../../api/rickmorty';
+import { renderWithProviders } from '../../test-utils';
 import CharacterDetails from './CharacterDetails';
 
+// Mock the underlying API function used by RTK Query's queryFn
 vi.mock('../../api/rickmorty', () => ({
   fetchCharacterById: vi.fn(),
 }));
@@ -23,7 +25,8 @@ const mockCharacter: Character = {
   image: 'https://rickandmortyapi.com/api/character/avatar/1.jpeg',
 };
 
-// Рендерит CharacterDetails в маршрутном контексте /details/:id
+// Renders CharacterDetails in a router context at /details/:id
+// Each call creates a fresh Redux store via renderWithProviders
 const renderDetails = (id = '1', search = '?page=1') => {
   const router = createMemoryRouter(
     [
@@ -32,7 +35,7 @@ const renderDetails = (id = '1', search = '?page=1') => {
     ],
     { initialEntries: [`/details/${id}${search}`] }
   );
-  return render(<RouterProvider router={router} />);
+  return renderWithProviders(<RouterProvider router={router} />);
 };
 
 describe('CharacterDetails', () => {
@@ -137,19 +140,16 @@ describe('CharacterDetails', () => {
     it('navigates to home with page param when close is clicked', async () => {
       const user = userEvent.setup();
       renderDetails('1', '?page=3');
-      // Ждём загрузки
       await screen.findByText('Rick Sanchez');
 
       await user.click(screen.getByLabelText('Close details'));
 
-      // После закрытия должна рендериться домашняя страница
       await screen.findByTestId('home-page');
     });
   });
 
   describe('re-fetch on id change', () => {
     it('fetches with new id when navigating to a different character', async () => {
-      // Используем router.navigate() — правильный способ сменить роут внутри одного роутера
       const router = createMemoryRouter(
         [
           { path: '/', element: <div data-testid="home-page">Home</div> },
@@ -157,7 +157,7 @@ describe('CharacterDetails', () => {
         ],
         { initialEntries: ['/details/1'] }
       );
-      render(<RouterProvider router={router} />);
+      renderWithProviders(<RouterProvider router={router} />);
       await screen.findByText('Rick Sanchez');
 
       router.navigate('/details/2');

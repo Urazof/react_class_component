@@ -8,6 +8,7 @@ import App from './App';
 
 vi.mock('./api/rickmorty', () => ({
   fetchCharacters: vi.fn(),
+  fetchCharacterById: vi.fn(),
 }));
 
 const mockFetch = vi.mocked(fetchCharacters);
@@ -164,7 +165,12 @@ describe('App', () => {
       await user.type(screen.getByRole('textbox'), 'Rick');
       await user.click(screen.getByRole('button', { name: /search/i }));
 
-      expect(screen.getByRole('status')).toBeInTheDocument();
+      // RTK Query propagates isLoading through Redux store dispatch.
+      // Wait until both the fetch is in-flight AND the spinner is visible.
+      await waitFor(() => {
+        expect(mockFetch).toHaveBeenCalledWith('Rick', 1);
+        expect(screen.getByRole('status')).toBeInTheDocument();
+      });
     });
 
     it('clears previous error when a new search starts', async () => {
