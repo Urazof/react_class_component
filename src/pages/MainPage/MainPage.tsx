@@ -1,7 +1,7 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback } from 'react';
 import { useSearchParams, useNavigate, useOutlet } from 'react-router-dom';
-import { fetchCharacters } from '../../api/rickmorty';
-import type { Character } from '../../api/rickmorty';
+import { useGetCharactersQuery, getQueryErrorMessage, rickmortyApi } from '../../store/api/rickmortyApi';
+import { useAppDispatch } from '../../store/hooks';
 import Search from '../../components/Search/Search';
 import CardList from '../../components/CardList/CardList';
 import Pagination from '../../components/Pagination/Pagination';
@@ -13,62 +13,57 @@ import './MainPage.css';
 function MainPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
-  // useOutlet: null когда нет активного вложенного роута, ReactElement когда details/:id активен
+  const dispatch = useAppDispatch();
   const outlet = useOutlet();
   const isDetailsOpen = outlet !== null;
 
   const page = Number(searchParams.get('page') ?? '1');
+  // Initialize from localStorage so RTK Query fires the correct query on mount
+  const [searchTerm, setSearchTerm] = useState(() => localStorage.getItem('rm_search_term') ?? '');
 
-  const [characters, setCharacters] = useState<Character[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [totalPages, setTotalPages] = useState(0);
-  const termRef = useRef('');
+  const { data, isLoading, isFetching, isError, error } = useGetCharactersQuery({ searchTerm, page });
 
-  const fetchData = useCallback(async (term: string, pageNum: number) => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const { results, info } = await fetchCharacters(term, pageNum);
-      setCharacters(results);
-      setTotalPages(info.pages);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Something went wrong');
-      setCharacters([]);
-      setTotalPages(0);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+  const characters = data?.results ?? [];
+  const totalPages = data?.info.pages ?? 0;
 
-  const handleSearch = useCallback((term: string) => {
-    termRef.current = term;
-    setSearchParams(
-      (prev) => {
+  const handleSearch = useCallback(
+    (term: string) => {
+      // Skip update when the term hasn't changed (e.g. Search fires onSearch on mount)
+      if (term === searchTerm) return;
+      setSearchTerm(term);
+      // Only reset page in URL when we're not already on page 1
+      if (page !== 1) {
+        setSearchParams(
+          (prev) => {
+            const next = new URLSearchParams(prev);
+            next.set('page', '1');
+            return next;
+          },
+          { replace: true }
+        );
+      }
+    },
+    [searchTerm, page, setSearchParams]
+  );
+
+  const handlePageChange = useCallback(
+    (newPage: number) => {
+      setSearchParams((prev) => {
         const next = new URLSearchParams(prev);
-        next.set('page', '1');
+        next.set('page', String(newPage));
         return next;
-      },
-      { replace: true }
-    );
-    fetchData(term, 1);
-  }, [fetchData, setSearchParams]);
+      });
+    },
+    [setSearchParams]
+  );
 
-  const handlePageChange = useCallback((newPage: number) => {
-    setSearchParams((prev) => {
-      const next = new URLSearchParams(prev);
-      next.set('page', String(newPage));
-      return next;
-    });
-    fetchData(termRef.current, newPage);
-  }, [fetchData, setSearchParams]);
+  const handleCardClick = useCallback(
+    (id: number) => {
+      navigate(`details/${id}?${searchParams.toString()}`);
+    },
+    [navigate, searchParams]
+  );
 
-  // Клик по карточке: открыть детали, сохранить текущую страницу в URL
-  const handleCardClick = useCallback((id: number) => {
-    navigate(`details/${id}?${searchParams.toString()}`);
-  }, [navigate, searchParams]);
-
-  // Клик по левой части (вне карточки): закрыть детали если открыты
   const handleContentClick = useCallback(() => {
     if (isDetailsOpen) {
       const search = searchParams.toString();
@@ -76,14 +71,20 @@ function MainPage() {
     }
   }, [isDetailsOpen, navigate, searchParams]);
 
+  const handleRefresh = useCallback(() => {
+    dispatch(rickmortyApi.util.invalidateTags(['Characters', 'Character']));
+  }, [dispatch]);
+
   return (
     <div className="main-page">
       <Search onSearch={handleSearch} />
       <div className="main-page__body" onClick={handleContentClick}>
         <div className="main-page__list" data-testid="main-page-list">
-          {isLoading && <Spinner />}
-          {!isLoading && error && <ErrorMessage message={error} />}
-          {!isLoading && !error && (
+          {(isLoading || isFetching) && <Spinner />}
+          {!isLoading && !isFetching && isError && (
+            <ErrorMessage message={getQueryErrorMessage(error)} />
+          )}
+          {!isLoading && !isFetching && !isError && (
             <>
               <CardList characters={characters} onCardClick={handleCardClick} />
               {totalPages > 1 && (
@@ -97,7 +98,6 @@ function MainPage() {
           )}
         </div>
         {isDetailsOpen && (
-          // stopPropagation: клик внутри деталей не всплывает до handleContentClick
           <div
             className="main-page__details"
             onClick={(e) => e.stopPropagation()}
@@ -106,8 +106,18 @@ function MainPage() {
           </div>
         )}
       </div>
-      <div className="main-page__error-trigger">
-        <ThrowErrorButton />
+      <div className="main-page__footer">
+        <button
+          type="button"
+          className="main-page__refresh"
+          onClick={handleRefresh}
+          aria-label="Refresh data"
+        >
+          Refresh
+        </button>
+        <div className="main-page__error-trigger">
+          <ThrowErrorButton />
+        </div>
       </div>
     </div>
   );
