@@ -26,10 +26,33 @@
   top: var(--space-lg);
 }
 
+.main-page__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: var(--space-md);
+  gap: var(--space-md);
+}
+
+.main-page__refresh {
+  padding: var(--space-xs) var(--space-md);
+  background: var(--color-primary);
+  color: #fff;
+  border: none;
+  border-radius: var(--border-radius-sm);
+  cursor: pointer;
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  transition: opacity 0.15s;
+}
+
+.main-page__refresh:hover {
+  opacity: 0.85;
+}
+
 .main-page__error-trigger {
   display: flex;
   justify-content: flex-end;
-  padding-top: var(--space-md);
 }
 
 @media (max-width: 768px) {

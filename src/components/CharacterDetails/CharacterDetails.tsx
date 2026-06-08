@@ -1,7 +1,5 @@
-import { useState, useEffect } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
-import { fetchCharacterById } from '../../api/rickmorty';
-import type { Character } from '../../api/rickmorty';
+import { useGetCharacterByIdQuery, getQueryErrorMessage } from '../../store/api/rickmortyApi';
 import Spinner from '../Spinner/Spinner';
 import './CharacterDetails.css';
 
@@ -10,44 +8,10 @@ function CharacterDetails() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
-  const [fetchedForId, setFetchedForId] = useState<string | undefined>(undefined);
-  const [character, setCharacter] = useState<Character | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  // Derived state: reset to loading when id changes, during render (no effect needed).
-  // React re-renders synchronously on this setState and discards the stale render.
-  // https://react.dev/learn/you-might-not-need-an-effect#adjusting-some-state-when-a-prop-changes
-  if (id !== fetchedForId) {
-    setFetchedForId(id);
-    setCharacter(null);
-    setIsLoading(true);
-    setError(null);
-  }
-
-  useEffect(() => {
-    if (!id) return;
-
-    let cancelled = false;
-
-    fetchCharacterById(Number(id))
-      .then((data) => {
-        if (!cancelled) {
-          setCharacter(data);
-          setIsLoading(false);
-        }
-      })
-      .catch((err) => {
-        if (!cancelled) {
-          setError(err instanceof Error ? err.message : 'Failed to load character');
-          setIsLoading(false);
-        }
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [id]);
+  const numericId = Number(id);
+  const { data: character, isLoading, isError, error } = useGetCharacterByIdQuery(numericId, {
+    skip: !id,
+  });
 
   const handleClose = () => {
     const search = searchParams.toString();
@@ -67,13 +31,13 @@ function CharacterDetails() {
 
       {isLoading && <Spinner />}
 
-      {!isLoading && error && (
+      {!isLoading && isError && (
         <p className="character-details__error" role="alert">
-          {error}
+          {getQueryErrorMessage(error)}
         </p>
       )}
 
-      {!isLoading && !error && character && (
+      {!isLoading && !isError && character && (
         <div className="character-details__content">
           <img
             className="character-details__image"

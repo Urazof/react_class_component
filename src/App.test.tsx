@@ -1,16 +1,31 @@
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
-import { fetchCharacters } from './api/rickmorty';
 import type { Character, ApiInfo } from './api/rickmorty';
 import { renderWithProviders } from './test-utils';
 import App from './App';
 
-vi.mock('./api/rickmorty', () => ({
-  fetchCharacters: vi.fn(),
-}));
+// Mock the global fetch used by RTK Query's fetchBaseQuery.
+// fetchBaseQuery passes a Request object to fetch(), so we check request.url.
+const mockFetch = vi.fn();
+vi.stubGlobal('fetch', mockFetch);
 
-const mockFetch = vi.mocked(fetchCharacters);
+const makeResponse = (data: unknown, status = 200): Response => {
+  const ok = status >= 200 && status < 300;
+  const body = JSON.stringify(data);
+  const mock = {
+    ok,
+    status,
+    headers: { get: () => 'application/json' } as unknown as Headers,
+    json: () => Promise.resolve(data),
+    text: () => Promise.resolve(body),
+    clone: () => mock,
+  } as unknown as Response;
+  return mock;
+};
+
+const lastUrl = () => (mockFetch.mock.lastCall?.[0] as Request).url;
+const nthUrl = (n: number) => (mockFetch.mock.calls[n]?.[0] as Request).url;
 
 const emptyInfo: ApiInfo = { count: 0, pages: 0, next: null, prev: null };
 const singlePageInfo: ApiInfo = { count: 1, pages: 1, next: null, prev: null };
@@ -44,13 +59,15 @@ describe('App', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     localStorage.clear();
-    mockFetch.mockResolvedValue({ results: [], info: emptyInfo });
+    mockFetch.mockResolvedValue(makeResponse({ results: [], info: emptyInfo }));
   });
 
   describe('initial load', () => {
-    it('calls fetchCharacters on mount', async () => {
+    it('calls fetch on mount with correct URL', async () => {
       renderApp();
-      await waitFor(() => expect(mockFetch).toHaveBeenCalledWith('', 1));
+      await waitFor(() =>
+        expect(nthUrl(0)).toBe('https://rickandmortyapi.com/api/character?page=1')
+      );
     });
 
     it('shows spinner while API request is pending', () => {
@@ -67,27 +84,33 @@ describe('App', () => {
     });
 
     it('renders characters after successful API response', async () => {
-      mockFetch.mockResolvedValueOnce({ results: [mockCharacter], info: singlePageInfo });
+      mockFetch.mockResolvedValueOnce(makeResponse({ results: [mockCharacter], info: singlePageInfo }));
       renderApp();
       await screen.findByText('Rick Sanchez');
     });
 
     it('shows empty state when API returns no characters', async () => {
-      mockFetch.mockResolvedValueOnce({ results: [], info: emptyInfo });
+      mockFetch.mockResolvedValueOnce(makeResponse({ results: [], info: emptyInfo }));
+      renderApp();
+      await screen.findByText('No characters found. Try a different search term.');
+    });
+
+    it('shows empty state when API returns 404 (no characters match search)', async () => {
+      mockFetch.mockResolvedValueOnce(makeResponse({ error: 'Nothing found' }, 404));
       renderApp();
       await screen.findByText('No characters found. Try a different search term.');
     });
 
     it('uses saved search term from localStorage for initial load', async () => {
       localStorage.setItem('rm_search_term', 'Rick');
-      mockFetch.mockResolvedValueOnce({ results: [mockCharacter], info: singlePageInfo });
+      mockFetch.mockResolvedValueOnce(makeResponse({ results: [mockCharacter], info: singlePageInfo }));
       renderApp();
       await screen.findByText('Rick Sanchez');
-      expect(mockFetch).toHaveBeenCalledWith('Rick', 1);
+      expect(nthUrl(0)).toBe('https://rickandmortyapi.com/api/character?page=1&name=Rick');
     });
 
     it('renders multiple characters', async () => {
-      mockFetch.mockResolvedValueOnce({ results: [mockCharacter, mortyCharacter], info: singlePageInfo });
+      mockFetch.mockResolvedValueOnce(makeResponse({ results: [mockCharacter, mortyCharacter], info: singlePageInfo }));
       renderApp();
       await screen.findByText('Rick Sanchez');
       expect(screen.getByText('Morty Smith')).toBeInTheDocument();
@@ -121,26 +144,39 @@ describe('App', () => {
       expect(screen.queryByRole('list')).not.toBeInTheDocument();
     });
 
-    it('shows fallback message when rejection value is not an Error instance', async () => {
+    it('shows the rejection value when fetch rejects with a non-Error', async () => {
       mockFetch.mockRejectedValueOnce('unexpected string rejection');
       renderApp();
-      await screen.findByRole('alert');
-      const alert = screen.getByRole('alert');
-      expect(alert).toHaveTextContent('Something went wrong');
+      const alert = await screen.findByRole('alert');
+      expect(alert).toHaveTextContent('unexpected string rejection');
+    });
+
+    it('shows error body message when API returns HTTP 500 with error field', async () => {
+      mockFetch.mockResolvedValueOnce(makeResponse({ error: 'Internal Server Error' }, 500));
+      renderApp();
+      await screen.findByText('Internal Server Error');
+    });
+
+    it('shows "Server responded with N" when HTTP error has no error body', async () => {
+      mockFetch.mockResolvedValueOnce(makeResponse('service unavailable', 503));
+      renderApp();
+      await screen.findByText('Server responded with 503');
     });
   });
 
   describe('search interaction', () => {
-    it('calls fetchCharacters with the typed search term', async () => {
+    it('calls fetch with the typed search term', async () => {
       const user = userEvent.setup();
       renderApp();
       await screen.findByText('No characters found. Try a different search term.');
 
-      mockFetch.mockResolvedValueOnce({ results: [mockCharacter], info: singlePageInfo });
+      mockFetch.mockResolvedValueOnce(makeResponse({ results: [mockCharacter], info: singlePageInfo }));
       await user.type(screen.getByRole('textbox'), 'Rick');
       await user.click(screen.getByRole('button', { name: /search/i }));
 
-      expect(mockFetch).toHaveBeenLastCalledWith('Rick', 1);
+      await waitFor(() =>
+        expect(lastUrl()).toBe('https://rickandmortyapi.com/api/character?page=1&name=Rick')
+      );
     });
 
     it('renders new results after search', async () => {
@@ -148,7 +184,7 @@ describe('App', () => {
       renderApp();
       await screen.findByText('No characters found. Try a different search term.');
 
-      mockFetch.mockResolvedValueOnce({ results: [mockCharacter], info: singlePageInfo });
+      mockFetch.mockResolvedValueOnce(makeResponse({ results: [mockCharacter], info: singlePageInfo }));
       await user.type(screen.getByRole('textbox'), 'Rick');
       await user.click(screen.getByRole('button', { name: /search/i }));
 
@@ -164,7 +200,10 @@ describe('App', () => {
       await user.type(screen.getByRole('textbox'), 'Rick');
       await user.click(screen.getByRole('button', { name: /search/i }));
 
-      expect(screen.getByRole('status')).toBeInTheDocument();
+      await waitFor(() => {
+        expect(lastUrl()).toBe('https://rickandmortyapi.com/api/character?page=1&name=Rick');
+        expect(screen.getByRole('status')).toBeInTheDocument();
+      });
     });
 
     it('clears previous error when a new search starts', async () => {
@@ -173,7 +212,7 @@ describe('App', () => {
       renderApp();
       await screen.findByRole('alert');
 
-      mockFetch.mockResolvedValueOnce({ results: [mockCharacter], info: singlePageInfo });
+      mockFetch.mockResolvedValueOnce(makeResponse({ results: [mockCharacter], info: singlePageInfo }));
       await user.type(screen.getByRole('textbox'), 'Rick');
       await user.click(screen.getByRole('button', { name: /search/i }));
 
@@ -181,17 +220,19 @@ describe('App', () => {
       expect(screen.queryByRole('alert')).not.toBeInTheDocument();
     });
 
-    it('calls fetchCharacters when Enter key is pressed', async () => {
+    it('calls fetch when Enter key is pressed', async () => {
       const user = userEvent.setup();
       renderApp();
       await screen.findByText('No characters found. Try a different search term.');
 
-      mockFetch.mockResolvedValueOnce({ results: [mortyCharacter], info: singlePageInfo });
+      mockFetch.mockResolvedValueOnce(makeResponse({ results: [mortyCharacter], info: singlePageInfo }));
       await user.type(screen.getByRole('textbox'), 'Morty');
       await user.keyboard('{Enter}');
 
       await screen.findByText('Morty Smith');
-      expect(mockFetch).toHaveBeenLastCalledWith('Morty', 1);
+      await waitFor(() =>
+        expect(lastUrl()).toBe('https://rickandmortyapi.com/api/character?page=1&name=Morty')
+      );
     });
   });
 
