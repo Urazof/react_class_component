@@ -1,18 +1,30 @@
 import { screen, waitFor, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
-import { fetchCharacters } from '../../api/rickmorty';
 import type { Character, ApiInfo } from '../../api/rickmorty';
 import { renderWithProviders } from '../../test-utils';
 import MainPage from './MainPage';
 
-// Mock the underlying API functions used by RTK Query's queryFn
-vi.mock('../../api/rickmorty', () => ({
-  fetchCharacters: vi.fn(),
-  fetchCharacterById: vi.fn(),
-}));
+// Mock the global fetch used by RTK Query's fetchBaseQuery.
+// fetchBaseQuery passes a Request object to fetch(), so we check request.url.
+const mockFetch = vi.fn();
+vi.stubGlobal('fetch', mockFetch);
 
-const mockFetch = vi.mocked(fetchCharacters);
+const makeResponse = (data: unknown, status = 200): Response => {
+  const ok = status >= 200 && status < 300;
+  const body = JSON.stringify(data);
+  const mock = {
+    ok,
+    status,
+    headers: { get: () => 'application/json' } as unknown as Headers,
+    json: () => Promise.resolve(data),
+    text: () => Promise.resolve(body),
+    clone: () => mock,
+  } as unknown as Response;
+  return mock;
+};
+
+const lastUrl = () => (mockFetch.mock.lastCall?.[0] as Request).url;
 
 const emptyInfo: ApiInfo = { count: 0, pages: 0, next: null, prev: null };
 const multiPageInfo: ApiInfo = { count: 40, pages: 2, next: 'next', prev: null };
@@ -52,39 +64,39 @@ describe('MainPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     localStorage.clear();
-    mockFetch.mockResolvedValue({ results: [], info: emptyInfo });
+    mockFetch.mockResolvedValue(makeResponse({ results: [], info: emptyInfo }));
   });
 
   describe('handlePageChange', () => {
-    it('calls fetchCharacters with the next page number when next button is clicked', async () => {
+    it('calls fetch with the next page number when next button is clicked', async () => {
       const user = userEvent.setup();
-      mockFetch.mockResolvedValueOnce({ results: [mockCharacter], info: multiPageInfo });
+      mockFetch.mockResolvedValueOnce(makeResponse({ results: [mockCharacter], info: multiPageInfo }));
       renderMainPage();
 
       // Waiting for the pagination nav to appear (totalPages > 1)
       await screen.findByRole('navigation', { name: 'Pagination' });
 
-      mockFetch.mockResolvedValueOnce({ results: [], info: emptyInfo });
+      mockFetch.mockResolvedValueOnce(makeResponse({ results: [], info: emptyInfo }));
       await user.click(screen.getByRole('button', { name: /next page/i }));
 
       await waitFor(() =>
-        expect(mockFetch).toHaveBeenLastCalledWith('', 2)
+        expect(lastUrl()).toBe('https://rickandmortyapi.com/api/character?page=2')
       );
     });
 
-    it('calls fetchCharacters with the previous page number when prev button is clicked', async () => {
+    it('calls fetch with the previous page number when prev button is clicked', async () => {
       const user = userEvent.setup();
       // Start on page 2 so prev is enabled
-      mockFetch.mockResolvedValueOnce({ results: [mockCharacter], info: multiPageInfo });
+      mockFetch.mockResolvedValueOnce(makeResponse({ results: [mockCharacter], info: multiPageInfo }));
       renderMainPage('/?page=2');
 
       await screen.findByRole('navigation', { name: 'Pagination' });
 
-      mockFetch.mockResolvedValueOnce({ results: [], info: emptyInfo });
+      mockFetch.mockResolvedValueOnce(makeResponse({ results: [], info: emptyInfo }));
       await user.click(screen.getByRole('button', { name: /previous page/i }));
 
       await waitFor(() =>
-        expect(mockFetch).toHaveBeenLastCalledWith('', 1)
+        expect(lastUrl()).toBe('https://rickandmortyapi.com/api/character?page=1')
       );
     });
   });
@@ -93,8 +105,8 @@ describe('MainPage', () => {
     it('navigates to character details route when a card is clicked', async () => {
       const user = userEvent.setup();
       mockFetch.mockReset();
-      mockFetch.mockResolvedValueOnce({ results: [mockCharacter], info: multiPageInfo });
-      mockFetch.mockResolvedValue({ results: [], info: emptyInfo });
+      mockFetch.mockResolvedValueOnce(makeResponse({ results: [mockCharacter], info: multiPageInfo }));
+      mockFetch.mockResolvedValue(makeResponse({ results: [], info: emptyInfo }));
 
       renderMainPage('/');
 
@@ -107,8 +119,8 @@ describe('MainPage', () => {
     it('preserves the current page query param when navigating to details', async () => {
       const user = userEvent.setup();
       mockFetch.mockReset();
-      mockFetch.mockResolvedValueOnce({ results: [mockCharacter], info: multiPageInfo });
-      mockFetch.mockResolvedValue({ results: [], info: emptyInfo });
+      mockFetch.mockResolvedValueOnce(makeResponse({ results: [mockCharacter], info: multiPageInfo }));
+      mockFetch.mockResolvedValue(makeResponse({ results: [], info: emptyInfo }));
 
       renderMainPage('/?page=2');
 
@@ -162,14 +174,14 @@ describe('MainPage', () => {
 
     it('re-fetches data when refresh button is clicked', async () => {
       const user = userEvent.setup();
-      mockFetch.mockResolvedValueOnce({ results: [mockCharacter], info: emptyInfo });
+      mockFetch.mockResolvedValueOnce(makeResponse({ results: [mockCharacter], info: emptyInfo }));
       renderMainPage();
 
       await screen.findByText('Rick Sanchez');
       expect(mockFetch).toHaveBeenCalledTimes(1);
 
       // Set up new data for the refetch after cache invalidation
-      mockFetch.mockResolvedValueOnce({ results: [], info: emptyInfo });
+      mockFetch.mockResolvedValueOnce(makeResponse({ results: [], info: emptyInfo }));
       await user.click(screen.getByRole('button', { name: /refresh data/i }));
 
       await waitFor(() =>

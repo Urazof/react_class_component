@@ -1,17 +1,28 @@
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
-import { fetchCharacterById } from '../../api/rickmorty';
 import type { Character } from '../../api/rickmorty';
 import { renderWithProviders } from '../../test-utils';
 import CharacterDetails from './CharacterDetails';
 
-// Mock the underlying API function used by RTK Query's queryFn
-vi.mock('../../api/rickmorty', () => ({
-  fetchCharacterById: vi.fn(),
-}));
+// Mock the global fetch used by RTK Query's fetchBaseQuery.
+// fetchBaseQuery passes a Request object to fetch(), so we check request.url.
+const mockFetch = vi.fn();
+vi.stubGlobal('fetch', mockFetch);
 
-const mockFetch = vi.mocked(fetchCharacterById);
+const makeResponse = (data: unknown, status = 200): Response => {
+  const ok = status >= 200 && status < 300;
+  const body = JSON.stringify(data);
+  const mock = {
+    ok,
+    status,
+    headers: { get: () => 'application/json' } as unknown as Headers,
+    json: () => Promise.resolve(data),
+    text: () => Promise.resolve(body),
+    clone: () => mock,
+  } as unknown as Response;
+  return mock;
+};
 
 const mockCharacter: Character = {
   id: 1,
@@ -41,7 +52,7 @@ const renderDetails = (id = '1', search = '?page=1') => {
 describe('CharacterDetails', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockFetch.mockResolvedValue(mockCharacter);
+    mockFetch.mockResolvedValue(makeResponse(mockCharacter));
   });
 
   describe('loading state', () => {
@@ -62,7 +73,11 @@ describe('CharacterDetails', () => {
   describe('successful load', () => {
     it('fetches character with the correct id from URL params', async () => {
       renderDetails('25');
-      await waitFor(() => expect(mockFetch).toHaveBeenCalledWith(25));
+      await waitFor(() =>
+        expect((mockFetch.mock.calls[0]?.[0] as Request).url).toBe(
+          'https://rickandmortyapi.com/api/character/25'
+        )
+      );
     });
 
     it('renders character name', async () => {
@@ -97,7 +112,7 @@ describe('CharacterDetails', () => {
     });
 
     it('renders type row when type is non-empty', async () => {
-      mockFetch.mockResolvedValueOnce({ ...mockCharacter, type: 'Parasite' });
+      mockFetch.mockResolvedValueOnce(makeResponse({ ...mockCharacter, type: 'Parasite' }));
       renderDetails();
       await screen.findByText('Parasite');
     });
@@ -123,11 +138,11 @@ describe('CharacterDetails', () => {
       expect(screen.queryByRole('status')).not.toBeInTheDocument();
     });
 
-    it('shows fallback message when rejection is not an Error instance', async () => {
+    it('shows the rejection value when fetch rejects with a non-Error', async () => {
       mockFetch.mockRejectedValueOnce('string rejection');
       renderDetails();
       const alert = await screen.findByRole('alert');
-      expect(alert).toHaveTextContent('Failed to load character');
+      expect(alert).toHaveTextContent('string rejection');
     });
   });
 
@@ -162,7 +177,11 @@ describe('CharacterDetails', () => {
 
       router.navigate('/details/2');
 
-      await waitFor(() => expect(mockFetch).toHaveBeenCalledWith(2));
+      await waitFor(() =>
+        expect((mockFetch.mock.lastCall?.[0] as Request).url).toBe(
+          'https://rickandmortyapi.com/api/character/2'
+        )
+      );
     });
   });
 });
