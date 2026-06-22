@@ -1,0 +1,32 @@
+.not-found {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-md);
+  padding: var(--space-2xl);
+  text-align: center;
+}
+
+.not-found__title {
+  font-size: var(--font-size-xl);
+  color: var(--color-text);
+}
+
+.not-found__description {
+  color: var(--color-text-muted);
+}
+
+.not-found__link {
+  display: inline-block;
+  padding: var(--space-sm) var(--space-lg);
+  background: var(--color-primary);
+  color: #fff;
+  border-radius: var(--border-radius);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.not-found__link:hover {
+  opacity: 0.9;
+}

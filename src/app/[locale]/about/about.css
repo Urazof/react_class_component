@@ -1,0 +1,35 @@
+.about-page {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: var(--space-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.about-page__title {
+  font-size: var(--font-size-xl);
+  color: var(--color-primary);
+}
+
+.about-page__author {
+  font-size: var(--font-size-base);
+  color: var(--color-text);
+}
+
+.about-page__description {
+  color: var(--color-text-muted);
+  line-height: 1.6;
+}
+
+.about-page__link {
+  display: inline-block;
+  color: var(--color-primary);
+  text-decoration: none;
+  font-weight: 600;
+  padding: var(--space-sm) 0;
+}
+
+.about-page__link:hover {
+  text-decoration: underline;
+}

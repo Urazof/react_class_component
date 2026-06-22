@@ -1,16 +1,26 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { MemoryRouter } from 'react-router-dom';
+import { NextIntlClientProvider } from 'next-intl';
 import { ThemeProvider } from '../../context/ThemeContext';
 import Header from './Header';
+import enMessages from '../../../messages/en.json';
+
+// Mock next-intl navigation so Header's Link/useRouter/usePathname work in jsdom
+vi.mock('../../i18n/navigation', () => ({
+  Link: ({ children, href, className }: { children: React.ReactNode; href: string; className?: string }) => (
+    <a href={href} className={className}>{children}</a>
+  ),
+  usePathname: () => '/',
+  useRouter: () => ({ replace: vi.fn() }),
+}));
 
 const renderHeader = () =>
   render(
-    <MemoryRouter>
+    <NextIntlClientProvider locale="en" messages={enMessages}>
       <ThemeProvider>
         <Header />
       </ThemeProvider>
-    </MemoryRouter>
+    </NextIntlClientProvider>
   );
 
 describe('Header', () => {

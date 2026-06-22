@@ -1,4 +1,6 @@
 import '@testing-library/jest-dom';
+// next/navigation is redirected to src/__mocks__/next-navigation.ts via vitest.config.ts resolve.alias.
+// No manual vi.mock() needed here — the alias handles it globally.
 
 // jsdom's built-in localStorage is incomplete — replace with a full implementation
 const buildLocalStorageMock = () => {

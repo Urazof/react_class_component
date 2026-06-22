@@ -1,9 +1,9 @@
 import { Routes, Route } from 'react-router-dom';
 import Header from './components/Header/Header';
 import ErrorBoundary from './components/ErrorBoundary/ErrorBoundary';
-import MainPage from './pages/MainPage/MainPage';
-import AboutPage from './pages/AboutPage/AboutPage';
-import NotFoundPage from './pages/NotFoundPage/NotFoundPage';
+import MainPage from './routes/MainPage/MainPage';
+import AboutPage from './routes/AboutPage/AboutPage';
+import NotFoundPage from './routes/NotFoundPage/NotFoundPage';
 import CharacterDetails from './components/CharacterDetails/CharacterDetails';
 import Flyout from './components/Flyout/Flyout';
 import './App.css';

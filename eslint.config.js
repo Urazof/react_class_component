@@ -15,11 +15,16 @@ export default defineConfig([
       js.configs.recommended,
       tseslint.configs.recommended,
       reactHooks.configs.flat.recommended,
-      reactRefresh.configs.vite,
       reactPlugin.configs.flat.recommended,
       reactPlugin.configs.flat['jsx-runtime'],
       eslintConfigPrettier,
     ],
+    // react-refresh is Vite-specific; Next.js uses its own Fast Refresh.
+    // Disabling to allow Next.js server component patterns (generateStaticParams etc.).
+    plugins: { 'react-refresh': reactRefresh },
+    rules: {
+      'react-refresh/only-export-components': 'off',
+    },
     languageOptions: {
       globals: globals.browser,
     },
