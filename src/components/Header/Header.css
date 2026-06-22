@@ -53,3 +53,27 @@
   border-color: #fff;
   color: #fff;
 }
+
+.header__controls {
+  display: flex;
+  gap: var(--space-sm);
+  align-items: center;
+}
+
+.header__lang-switch {
+  padding: var(--space-xs) var(--space-md);
+  border: 2px solid rgba(255, 255, 255, 0.6);
+  border-radius: var(--border-radius-sm);
+  background: transparent;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
+}
+
+.header__lang-switch:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: #fff;
+  color: #fff;
+}

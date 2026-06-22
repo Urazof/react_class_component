@@ -1,0 +1,41 @@
+{
+  "nav": {
+    "home": "Home",
+    "about": "About"
+  },
+  "search": {
+    "placeholder": "Search character...",
+    "button": "Search"
+  },
+  "about": {
+    "title": "About",
+    "author": "Built by Sergeyu",
+    "description": "A Rick & Morty character explorer built with React, TypeScript, and Next.js.",
+    "course": "RS School React Course"
+  },
+  "notFound": {
+    "title": "404 — Page Not Found",
+    "description": "The page you are looking for does not exist.",
+    "back": "Go Home"
+  },
+  "theme": {
+    "switchToDark": "Dark",
+    "switchToLight": "Light"
+  },
+  "language": {
+    "switch": "RU"
+  },
+  "flyout": {
+    "selected": "{count} {count, plural, one {item} other {items}} selected",
+    "download": "Download CSV",
+    "unselectAll": "Unselect all"
+  },
+  "errors": {
+    "somethingWentWrong": "Something went wrong",
+    "tryAgain": "Try again"
+  },
+  "characters": {
+    "notFound": "No characters found. Try a different search term.",
+    "refresh": "Refresh"
+  }
+}

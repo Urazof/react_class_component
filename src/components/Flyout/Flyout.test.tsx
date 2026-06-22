@@ -4,12 +4,16 @@ import { renderWithProviders } from '../../test-utils';
 import Flyout from './Flyout';
 import type { Character } from '../../api/rickmorty';
 
-vi.mock('../../utils/downloadCsv', () => ({
-  downloadCsv: vi.fn(),
+vi.mock('../../app/actions/generateCsv', () => ({
+  generateCsvAction: vi.fn().mockResolvedValue('id,name\n1,Rick Sanchez'),
 }));
 
-import { downloadCsv } from '../../utils/downloadCsv';
-const mockDownloadCsv = vi.mocked(downloadCsv);
+import { generateCsvAction } from '../../app/actions/generateCsv';
+const mockGenerateCsv = vi.mocked(generateCsvAction);
+
+// URL.createObjectURL is not in jsdom
+URL.createObjectURL = vi.fn().mockReturnValue('blob:mock-url');
+URL.revokeObjectURL = vi.fn();
 
 const rick: Character = {
   id: 1,
@@ -64,7 +68,7 @@ describe('Flyout', () => {
       expect(screen.getByRole('button', { name: /download csv/i })).toBeInTheDocument();
     });
 
-    it('calls downloadCsv with the selected items list', async () => {
+    it('calls generateCsvAction with the selected items list', async () => {
       const user = userEvent.setup();
       renderWithProviders(<Flyout />, {
         preloadedState: { selection: { selectedItems: { 1: rick } } },
@@ -72,7 +76,24 @@ describe('Flyout', () => {
 
       await user.click(screen.getByRole('button', { name: /download csv/i }));
 
-      expect(mockDownloadCsv).toHaveBeenCalledWith([rick]);
+      expect(mockGenerateCsv).toHaveBeenCalledWith([rick]);
+    });
+
+    it('triggers file download after generateCsvAction resolves', async () => {
+      const user = userEvent.setup();
+      const clickSpy = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+
+      renderWithProviders(<Flyout />, {
+        preloadedState: { selection: { selectedItems: { 1: rick } } },
+      });
+
+      await user.click(screen.getByRole('button', { name: /download csv/i }));
+
+      expect(URL.createObjectURL).toHaveBeenCalled();
+      expect(clickSpy).toHaveBeenCalled();
+      expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:mock-url');
+
+      clickSpy.mockRestore();
     });
   });
 

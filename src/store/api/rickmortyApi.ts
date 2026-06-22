@@ -2,7 +2,7 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import type { FetchBaseQueryError } from '@reduxjs/toolkit/query';
 import type { Character, CharactersResult } from '../../api/rickmorty';
 
-const CACHE_TTL = Number(import.meta.env.VITE_CACHE_TTL ?? '60');
+const CACHE_TTL = Number(process.env.NEXT_PUBLIC_CACHE_TTL ?? '60');
 
 const EMPTY_INFO = { count: 0, pages: 0, next: null, prev: null } as const;
 
@@ -36,7 +36,7 @@ export const rickmortyApi = createApi({
 
     getCharacterById: builder.query<Character, number>({
       query: (id) => `/character/${id}`,
-      providesTags: (result, error, id) => [{ type: 'Character', id }],
+      providesTags: (_result, _error, id) => [{ type: 'Character', id }],
     }),
   }),
 });
@@ -56,7 +56,7 @@ export function getQueryErrorMessage(error: unknown): string {
     }
     // fetchBaseQuery HTTP errors: { status: number, data: unknown }
     if ('status' in error && typeof (error as { status: unknown }).status === 'number') {
-      const data = (error as { data: unknown }).data;
+      const data = (error as unknown as { data: unknown }).data;
       if (
         typeof data === 'object' &&
         data !== null &&

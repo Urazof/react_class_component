@@ -2,26 +2,27 @@
   "name": "rs-react-app",
   "private": true,
   "version": "0.0.0",
-  "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc -b && vite build",
-    "lint": "eslint .",
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
     "format:fix": "prettier --write .",
-    "preview": "vite preview",
-    "test": "vitest",
-    "test:coverage": "vitest run --coverage",
+    "test": "vitest --config vitest.config.ts",
+    "test:coverage": "vitest run --coverage --config vitest.config.ts",
     "prepare": "husky"
   },
   "dependencies": {
     "@reduxjs/toolkit": "^2.12.0",
+    "next": "^15.5.19",
+    "next-intl": "^4.13.0",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
-    "react-redux": "^9.3.0",
-    "react-router-dom": "^7.15.1"
+    "react-redux": "^9.3.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.4",
+    "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^14.6.1",

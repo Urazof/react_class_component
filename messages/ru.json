@@ -1,0 +1,41 @@
+{
+  "nav": {
+    "home": "Главная",
+    "about": "О проекте"
+  },
+  "search": {
+    "placeholder": "Поиск персонажа...",
+    "button": "Найти"
+  },
+  "about": {
+    "title": "О проекте",
+    "author": "Создан Sergeyu",
+    "description": "Исследователь персонажей Рика и Морти на React, TypeScript и Next.js.",
+    "course": "Курс RS School React"
+  },
+  "notFound": {
+    "title": "404 — Страница не найдена",
+    "description": "Запрашиваемая страница не существует.",
+    "back": "На главную"
+  },
+  "theme": {
+    "switchToDark": "Тёмная",
+    "switchToLight": "Светлая"
+  },
+  "language": {
+    "switch": "EN"
+  },
+  "flyout": {
+    "selected": "Выбрано: {count} {count, plural, one {элемент} few {элемента} other {элементов}}",
+    "download": "Скачать CSV",
+    "unselectAll": "Снять выбор"
+  },
+  "errors": {
+    "somethingWentWrong": "Что-то пошло не так",
+    "tryAgain": "Попробовать снова"
+  },
+  "characters": {
+    "notFound": "Персонажи не найдены. Попробуйте другой запрос.",
+    "refresh": "Обновить"
+  }
+}

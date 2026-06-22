@@ -1,45 +1,37 @@
-import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
-import { useGetCharacterByIdQuery, getQueryErrorMessage } from '../../store/api/rickmortyApi';
-import Spinner from '../Spinner/Spinner';
-import './CharacterDetails.css';
+import Image from 'next/image';
+import { notFound } from 'next/navigation';
+import { Link } from '../../../../i18n/navigation';
+import { fetchCharacter } from '../../../../lib/fetchCharacter';
+import '../../../../components/CharacterDetails/CharacterDetails.css';
+import './details.css';
 
-function CharacterDetails() {
-  const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+interface DetailsPageProps {
+  params: Promise<{ locale: string; id: string }>;
+  searchParams: Promise<{ page?: string; q?: string }>;
+}
+
+export default async function CharacterDetailsPage({ params, searchParams }: DetailsPageProps) {
+  const { id } = await params;
+  const { page = '1', q = '' } = await searchParams;
 
   const numericId = Number(id);
-  const { data: character, isLoading, isError, error } = useGetCharacterByIdQuery(numericId, {
-    skip: !id,
-  });
+  if (!numericId || numericId < 1) notFound();
 
-  const handleClose = () => {
-    const search = searchParams.toString();
-    navigate({ pathname: '/', search: search ? `?${search}` : '' });
-  };
+  const character = await fetchCharacter(numericId);
+  if (!character) notFound();
+
+  const backParams = new URLSearchParams({ page });
+  if (q) backParams.set('q', q);
+  const backUrl = `/?${backParams.toString()}`;
 
   return (
-    <div className="character-details">
-      <button
-        className="character-details__close"
-        type="button"
-        onClick={handleClose}
-        aria-label="Close details"
-      >
-        ×
-      </button>
-
-      {isLoading && <Spinner />}
-
-      {!isLoading && isError && (
-        <p className="character-details__error" role="alert">
-          {getQueryErrorMessage(error)}
-        </p>
-      )}
-
-      {!isLoading && !isError && character && (
+    <div className="details-page">
+      <Link href={backUrl} className="character-details__back" aria-label="Close details">
+        ← Back
+      </Link>
+      <div className="character-details">
         <div className="character-details__content">
-          <img
+          <Image
             className="character-details__image"
             src={character.image}
             alt={character.name}
@@ -76,9 +68,7 @@ function CharacterDetails() {
             )}
           </dl>
         </div>
-      )}
+      </div>
     </div>
   );
 }
-
-export default CharacterDetails;
