@@ -45,7 +45,9 @@ export default async function HomePage({ params, searchParams }: HomePageProps) 
         </div>
       </div>
       <div className="main-page__footer">
-        <ThrowErrorButton />
+        <ErrorBoundary>
+          <ThrowErrorButton />
+        </ErrorBoundary>
       </div>
     </div>
   );
