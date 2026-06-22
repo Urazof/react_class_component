@@ -1,6 +1,6 @@
 import Image from 'next/image';
-import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import { Link } from '../../../../i18n/navigation';
 import { fetchCharacter } from '../../../../lib/fetchCharacter';
 import '../../../../components/CharacterDetails/CharacterDetails.css';
 import './details.css';
@@ -11,7 +11,7 @@ interface DetailsPageProps {
 }
 
 export default async function CharacterDetailsPage({ params, searchParams }: DetailsPageProps) {
-  const { locale, id } = await params;
+  const { id } = await params;
   const { page = '1', q = '' } = await searchParams;
 
   const numericId = Number(id);
@@ -22,7 +22,7 @@ export default async function CharacterDetailsPage({ params, searchParams }: Det
 
   const backParams = new URLSearchParams({ page });
   if (q) backParams.set('q', q);
-  const backUrl = `/${locale}?${backParams.toString()}`;
+  const backUrl = `/?${backParams.toString()}`;
 
   return (
     <div className="details-page">

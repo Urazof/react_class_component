@@ -1,6 +1,7 @@
 'use client';
 
-import { useRouter, usePathname, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
+import { useRouter, usePathname } from '../../../i18n/navigation';
 import '../../../components/Pagination/Pagination.css';
 
 interface PaginationProps {
