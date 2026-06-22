@@ -22,33 +22,33 @@ export default async function HomePage({ params, searchParams }: HomePageProps) 
   const { characters, totalPages, error } = await fetchCharacters(q, page);
 
   return (
-    <div className="main-page">
-      <Search defaultValue={q} locale={locale} />
-      <div className="main-page__body">
-        <div className="main-page__list" data-testid="main-page-list">
-          {error ? (
-            <ErrorMessage message={error} />
-          ) : (
-            <ErrorBoundary>
-              <CardList
-                characters={characters}
-                locale={locale}
-                currentPage={page}
-                searchTerm={q}
-                notFoundMessage={t('notFound')}
-              />
-              {totalPages > 1 && (
-                <Pagination currentPage={page} totalPages={totalPages} />
-              )}
-            </ErrorBoundary>
-          )}
+    <ErrorBoundary>
+      <div className="main-page">
+        <Search defaultValue={q} locale={locale} />
+        <div className="main-page__body">
+          <div className="main-page__list" data-testid="main-page-list">
+            {error ? (
+              <ErrorMessage message={error} />
+            ) : (
+              <>
+                <CardList
+                  characters={characters}
+                  locale={locale}
+                  currentPage={page}
+                  searchTerm={q}
+                  notFoundMessage={t('notFound')}
+                />
+                {totalPages > 1 && (
+                  <Pagination currentPage={page} totalPages={totalPages} />
+                )}
+              </>
+            )}
+          </div>
+        </div>
+        <div className="main-page__footer">
+          <ThrowErrorButton />
         </div>
       </div>
-      <div className="main-page__footer">
-        <ErrorBoundary>
-          <ThrowErrorButton />
-        </ErrorBoundary>
-      </div>
-    </div>
+    </ErrorBoundary>
   );
 }
