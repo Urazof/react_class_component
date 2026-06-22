@@ -65,3 +65,22 @@
   color: var(--color-primary-dark);
   font-weight: 500;
 }
+
+/* Form-based card navigation (Next.js SSR version) */
+.card__link {
+  display: contents;
+}
+
+.card__click-area {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+  align-items: stretch;
+  font: inherit;
+  color: inherit;
+}
